@@ -20,8 +20,8 @@ int main(void)
     bool GetFinalTime = false;
     bool GameOver = false;
     bool Alive = true;
-    bool Working = false;
-    //Test
+    
+    
     //check if music is being played
     bool musicPlaying = false;
 
