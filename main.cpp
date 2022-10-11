@@ -341,7 +341,9 @@ int main(void)
     UnloadMusicStream(backgroundMusic);   // Unload music stream buffers from RAM
 
     CloseAudioDevice();         // Close audio device (music streaming is automatically stopped)
-    UnloadTexture(trackTexture); // unloads Texture of track
+    UnloadTexture(trackTexture); // unloads Texture of Track
+    UnloadTexture(shipTexture); // unloads Texture of Ship
+    UnloadTexture(eshipTexture); // unloads Texture of Enemy Ship
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
