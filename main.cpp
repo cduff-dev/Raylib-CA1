@@ -1,5 +1,17 @@
 #include "raylib.h"
+#include "rlgl.h" //needed for skybox
 #include "raymath.h" //needed for Pitch/Yaw Calculation & application
+
+
+struct EnemyShip
+{
+  Vector3 pos;
+  float EnemyVelocity;
+  Model EModel;
+  Texture2D Texture;
+  BoundingBox eBounds;
+};
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -9,17 +21,25 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
-    float characterVelocity = 2.0f;
+    float characterVelocity = 0.1f;
     float yaw = 0.0f;
     float pitch = 0.0f;
     float roll = 0.0f;
     bool STcolliding = false;
-    bool SEcolliding = false;
+    //bool SEcolliding = false;
+    bool SE1colliding = false;
+    bool SE2colliding = false;
+    bool SE3colliding = false;
     bool SGcolliding = false;
     float finalTime = 0.0f;
     bool GetFinalTime = false;
     bool GameOver = false;
     bool Alive = true;
+    
+    //Enemy Position Vector
+    Vector3 EPosc[3] = {(Vector3){0.0f, 0.0f, -20.0f}, (Vector3){-5.0f,0.0f,-40.0f}, (Vector3){0.0f,0.0f,-60.0f}};
+   
+    
     
     
     //check if music is being played
@@ -46,6 +66,12 @@ int main(void)
     camera.fovy = 60.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
 
+
+    // Adds Model for skybox & texture (Is just a cube)
+    Model skybox = LoadModel("resources/cube.obj");
+    skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTexture("resources/Space.png");
+
+
     Model Track = LoadModel("Resources/Track.obj");                 // Loads track model from resource folder
     Texture2D trackTexture = LoadTexture("Resources/Track_Texture.png"); // Load model texture
     Track.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = trackTexture;            // Set model diffuse texture
@@ -61,11 +87,33 @@ int main(void)
     Vector3 shipPosition = { 0.0f, 0.0f, 0.0f };
     //Bounding box for ship - based on ships initial size. may need to scale depending on scale needed for game.
     
+    /*
     //Enemy Ship
     Model eShip = LoadModel("Resources/Ship.obj");                   // Loads Ship model from resource folder
     Texture2D eshipTexture = LoadTexture("resources/ShipTextures.png"); // Load model texture
     eShip.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = eshipTexture;            // Set model diffuse texture
+    //Postion is deteminded by array of vectors EPosc
     Vector3 eshipPosition = { 0.0f, 0.0f, -20.0f };
+    */
+
+    //Adding Eneny Ships from Sturct
+    EnemyShip EnemyShip1;
+   
+    EnemyShip1.EModel = LoadModel("Resources/Ship.obj");   
+    EnemyShip1.EModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTexture("resources/ShipTextures.png");
+    EnemyShip1.pos = {EPosc[0].x,EPosc[0].y,EPosc[0].z};
+
+    EnemyShip EnemyShip2;
+   
+    EnemyShip2.EModel = LoadModel("Resources/Ship.obj");   
+    EnemyShip2.EModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTexture("resources/ShipTextures.png");
+    EnemyShip2.pos = {EPosc[1].x,EPosc[1].y,EPosc[1].z};
+
+    EnemyShip EnemyShip3;
+   
+    EnemyShip3.EModel = LoadModel("Resources/Ship.obj");   
+    EnemyShip3.EModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTexture("resources/ShipTextures.png");
+    EnemyShip3.pos = {EPosc[2].x,EPosc[2].y,EPosc[2].z};
 
     Model Goal = LoadModel("Resources/Goal.obj");                   // Loads Ship model from resource folder
     //Texture2D GoalTexture = LoadTexture("resources/GoalTextures.png"); // Load model texture
@@ -92,17 +140,18 @@ int main(void)
 
             Add Controls (Player input) *
             Add 3D Models (player character & Track) *
-            Add Player Velocity and Velocity Control ~ Partially implemented, Will add last as its easy to debug.
+            Add Player Velocity and Velocity Control *
             Add Collision (Floor & Goal post) *
             Add Gravity *
             Add Textures (Examples on raylib, Check Cheatsheet) * - See Notes for Important info
-            Add Background Music ~ Added but you can't hear it.
+            Add Background Music * - See Notes for Important info
             Add Sounds (Examples on Raylib, Check Cheatsheet) * (Was missing updateMusicStream() - Needs to be there as music is checked every frame)
             Add Win/loss Condition (Position based) (Needs Collision) *
             Add Pitch & Yaw for turning (Extra) (Example on raylib) *
             Draw on Screen(Game objective, Player Velocity,elapsed time, Etc) *
-            Add Enemies ~ 1 enemy added. need to stream line adding enemies.
+            Add Enemies *
             Refeactor Code ~ Tidy up code based on feedback 
+            Enemy Struct - Position, Model, Speed, Texture, BoundingBox *
         */
         //----------------------------------------------------------------------------------
             UpdateMusicStream(backgroundMusic);
@@ -149,23 +198,23 @@ int main(void)
             //Increases characters Speed. Maxes out at 5. Character will always be moving.
             if(IsKeyDown(KEY_W))
             {
-                 if(characterVelocity<5.0f)
+                 if(characterVelocity<0.5f)
                  {
-                    characterVelocity += 0.1f;
+                    characterVelocity += 0.01f;
                  }
                  //temporary movement code to debug 
-                 shipPosition.z -=0.3f;
+                 //shipPosition.z -=0.3f;
                  
             }
             //Decreases Character Speed. Bottoms out at 1. Character will always be moving.
             if(IsKeyDown(KEY_S))
             {
-                 if(characterVelocity>1.0f)
+                 if(characterVelocity>0.1f)
                  {
-                    characterVelocity -= 0.1f;
+                    characterVelocity -= 0.01f;
                  }
                  //temporary movement code to debug 
-                 shipPosition.z +=0.3f;
+                 //shipPosition.z +=0.3f;
                  
             }
             if(IsKeyDown(KEY_L))
@@ -177,7 +226,15 @@ int main(void)
             //applies transformation to yaw of ship.
         Ship.transform = MatrixRotateXYZ((Vector3){ DEG2RAD*pitch, DEG2RAD*yaw, DEG2RAD*roll });
 
-        eshipPosition.z-=0.1f;
+        //Moves Enemy Ship
+        //eshipPosition.z-=0.1f;
+        EnemyShip1.pos.z-=0.1f;
+        EnemyShip2.pos.z-=0.15f;
+        EnemyShip3.pos.z-=0.2f;
+
+
+        //Moves Player Ship
+        shipPosition.z-=characterVelocity;
        
 
         // Draw
@@ -198,7 +255,13 @@ int main(void)
                 //DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
 
                 //DrawGrid(10, 1.0f);
-
+                
+                //Drawing Skybox
+                rlDisableBackfaceCulling();
+                //rlDisableDepthMask();
+                    DrawModel(skybox, (Vector3){0, 0, 0}, 500.0f, WHITE);
+                rlEnableBackfaceCulling();
+                //rlEnableDepthMask();
                 
                 //Draws Ship Model
                 DrawModel(Ship, shipPosition, 1.0f, WHITE);
@@ -223,6 +286,7 @@ int main(void)
                                      trackPosition.z + 10.0f }};
                 DrawBoundingBox(trackBounds, YELLOW); 
 
+                /*
                 //Draws Enemy Ship
                 DrawModel(eShip, eshipPosition, 1.0f, WHITE);
                 //Creates and draws to screen bounding box around model
@@ -233,6 +297,7 @@ int main(void)
                                      eshipPosition.y +2.5f,
                                      eshipPosition.z + 2.5f }};
                 DrawBoundingBox(eshipBounds, YELLOW);
+                */
 
                 //Draws GoalModel
                 DrawModel(Goal, GoalPosition, 2.4f, YELLOW);
@@ -243,6 +308,34 @@ int main(void)
                                      GoalPosition.y +10.0f,
                                      GoalPosition.z + 10.0f }};
                 DrawBoundingBox(GoalBounds, YELLOW);
+                
+                //Draw Enemy Ship /Now Using data from struct
+                 DrawModel(EnemyShip1.EModel,EnemyShip1.pos, 1.0f, WHITE);
+                BoundingBox eship1Bounds = (BoundingBox){(Vector3){ EnemyShip1.pos.x - 2.5f,
+                                     EnemyShip1.pos.y,
+                                     EnemyShip1.pos.z - 2.5f },
+                          (Vector3){ EnemyShip1.pos.x + 2.5f,
+                                     EnemyShip1.pos.y +2.5f,
+                                     EnemyShip1.pos.z + 2.5f }};
+                DrawBoundingBox(eship1Bounds, BLUE);
+
+                DrawModel(EnemyShip2.EModel,EnemyShip2.pos, 1.0f, WHITE);
+                BoundingBox eship2Bounds = (BoundingBox){(Vector3){ EnemyShip2.pos.x - 2.5f,
+                                     EnemyShip2.pos.y,
+                                     EnemyShip2.pos.z - 2.5f },
+                          (Vector3){ EnemyShip2.pos.x + 2.5f,
+                                     EnemyShip2.pos.y +2.5f,
+                                     EnemyShip2.pos.z + 2.5f }};
+                DrawBoundingBox(eship2Bounds, RED);
+
+                 DrawModel(EnemyShip3.EModel,EnemyShip3.pos, 1.0f, WHITE);
+                BoundingBox eship3Bounds = (BoundingBox){(Vector3){ EnemyShip3.pos.x - 2.5f,
+                                     EnemyShip3.pos.y,
+                                     EnemyShip3.pos.z - 2.5f },
+                          (Vector3){ EnemyShip3.pos.x + 2.5f,
+                                     EnemyShip3.pos.y +2.5f,
+                                     EnemyShip3.pos.z + 2.5f }};
+                DrawBoundingBox(eship3Bounds, PURPLE);
 
             EndMode3D();
 
@@ -267,11 +360,12 @@ int main(void)
                 shipPosition.y-=0.4f;
             }
 
-            if(SEcolliding == true && Alive == true)
+            if((SE1colliding == true || SE2colliding == true|| SE3colliding == true) && Alive == true && GameOver == false)
             {
                 DrawText("Colliding /w Enemy", 10, 90, 20, ORANGE);
                 PlaySoundMulti(EnemyHit);
                 Alive = false;
+                characterVelocity=0.0f;
                 
                 
             }
@@ -279,6 +373,7 @@ int main(void)
             {
                 GetFinalTime = true;
                 PlaySoundMulti(Victory);
+                characterVelocity=0.0f;
                 
             }
 
@@ -324,10 +419,13 @@ int main(void)
             //----------------------------------------------------------------------------------
             //Checks Collision between bounding boxes track and ship
             STcolliding = CheckCollisionBoxes(shipBounds, trackBounds);    
-            SEcolliding = CheckCollisionBoxes(shipBounds, eshipBounds);  
+            //SEcolliding = CheckCollisionBoxes(shipBounds, eshipBounds);  
+            SE1colliding = CheckCollisionBoxes(shipBounds, eship1Bounds);
+            SE2colliding = CheckCollisionBoxes(shipBounds, eship2Bounds);  
+            SE3colliding = CheckCollisionBoxes(shipBounds, eship3Bounds);    
             SGcolliding = CheckCollisionBoxes(shipBounds, GoalBounds);                     
 
-        
+            
         
 
         EndDrawing();
@@ -343,7 +441,7 @@ int main(void)
     CloseAudioDevice();         // Close audio device (music streaming is automatically stopped)
     UnloadTexture(trackTexture); // unloads Texture of Track
     UnloadTexture(shipTexture); // unloads Texture of Ship
-    UnloadTexture(eshipTexture); // unloads Texture of Enemy Ship
+    //UnloadTexture(eshipTexture); // unloads Texture of Enemy Ship
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -380,6 +478,9 @@ int main(void)
 
     Background Music - Megaman X4 Jet Stingray Stage  -Copyright Capcom
     https://www.youtube.com/watch?v=l4qUsOC8xUI
+
+    Skybox Image (Space.png)
+    https://blenderartists.org/t/space-background/660743
 
     
     *Notes*
